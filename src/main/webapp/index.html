@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hello MUI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="mui/css/mui.css">
+    <style type="text/css">
+        .mui-content>.mui-table-view:first-child {
+            margin-top: -1px;
+        }
+        .mui-active{
+
+        }
+        p{
+            font-size: 20px;
+        html,
+        body {
+            background-color: #efeff4;
+        }
+        p {
+            text-indent: 22px;
+        }
+        span.mui-icon {
+            font-size: 14px;
+            color: #007aff;
+            margin-left: -15px;
+            padding-right: 10px;
+        }
+        .mui-off-canvas-left {
+            color: #fff;
+        }
+        .title {
+            margin: 35px 15px 10px;
+        }
+        .title+.content {
+            margin: 10px 15px 35px;
+            color: #bbb;
+            text-indent: 1em;
+            font-size: 14px;
+            line-height: 24px;
+        }
+        input {
+            color: #000;
+        }}
+
+    </style>
+</head>
+
+<body>
+
+<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
+    <!--侧滑菜单部分-->
+    <aside id="offCanvasSide" class="mui-off-canvas-left">
+        <div id="offCanvasSideScroll" class="mui-scroll-wrapper">
+            <div class="mui-scroll">
+                <ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
+                    <li class="mui-table-view-cell">
+                        <a class="mui-navigate-right">
+                            这里打算做成书架和上传的地方
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+    <!--主界面部分-->
+    <div class="mui-inner-wrap">
+        <div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+            <div class="mui-scroll">
+                <!--数据列表-->
+                <ul id="content" style="padding: 0 2vw;font-weight: bold;" class="mui-table-view mui-table-view-chevron">
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="mui/js/mui.min.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var taken=window.localStorage.getItem("shuangxi_taken")
+    var page = -1;
+    mui.init({
+        pullRefresh: {
+            container: '#pullrefresh',
+            down: {
+                callback: function () {
+
+                }
+            },
+            up: {
+                auto:true,
+                contentrefresh: '正在加载...',
+                callback: function () {
+                    console.log("当前page="+page)
+                    if (page < 0) {
+                        fetch("queryPage.do?taken="+taken).then((data)=>data.json()).then((data)=>{
+                            if (data) {
+                                console.log(data)
+                                console.log("taken设置完毕")
+                                page = data.nowPage;
+                                window.localStorage.setItem("shuangxi_taken",data.taken);
+                                nextPage();
+                            }else {
+                                alert("异常啦，可能服务器宕机了")
+                            }
+
+                        });
+                    }else{
+                        nextPage()
+                    }
+
+                }
+            }
+        }
+    });
+
+function nextPage() {
+    fetch("nextPage.do?page="+page+"&taken="+taken).then((data)=>data.text()).then((data)=>{
+        page++;
+        mui('#pullrefresh').pullRefresh().endPullupToRefresh(false);
+        var content = document.body.querySelector('#content');
+        var li = document.createElement('p');
+        li.innerHTML =data;
+        content.appendChild(li)
+    });
+}
+
+
+</script>
+
+</body>
+
+</html>
